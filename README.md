@@ -7,5 +7,5 @@ Data preparation is first carried out. The data is broken into county level and 
 ## central_dp_laplace.ipynb
 This file uses the OpenDP library to run the Laplace Mechanism at the county level and at the electoral level. 
 
-## central_dp_stability_hist.ipynb
+## central_dp_stability_histogram.ipynb
 This file uses the OpenDP library to run the Stability Histogram Mechanism at the county level and at the electoral level. 
