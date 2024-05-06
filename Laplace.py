@@ -23,6 +23,9 @@ def Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts):
 
         noisy_histogram = histogram >> dp.m.then_base_discrete_laplace(scale = max_influence/budget[epsilon][0])
 
+        print("Starting Laplace with an epsilon value of ", epsilon)
+
+
         start_time = time.time()
         released_counts = noisy_histogram(data)
         end_time = time.time()
@@ -30,10 +33,15 @@ def Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts):
         elapsed_time = end_time - start_time
         all_elapsed_time.append(elapsed_time)
 
+        print("Finished Laplace with an epsilon value of ", epsilon)
+
         # Post-processing to ensure non-negative counts
         released_counts = [max(count, 0) for count in released_counts]
         released_counts = released_counts[:-1]
         all_released_counts.append(released_counts)
+
+        print("Finished Laplace")
+        print("Calculating RMSE")
 
         rmse = calculate_rmse(released_counts, sensitive_counts[:-1])
         all_rmse.append(rmse)

@@ -5,6 +5,8 @@ import numpy as np
 import opendp.prelude as dp
 dp.enable_features("contrib")
 dp.enable_features("floating-point")
+from StabilityHist import *
+from Laplace import *
 
 #Load in Data
 #The first CSV file is the sensitive data where each individual corresponds to a row
@@ -56,3 +58,12 @@ def plot_histogram(sensitive_counts, released_counts):
     plt.xlabel('Commute')
     plt.ylabel('Count')
     plt.show()
+
+def run_dp(Mechanism, col_names, Level, budget, max_influence, size, data, histogram, categories, sensitive_counts):
+    if Mechanism == "laplace":
+        released_counts, elapsed_time, all_rmse = Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts)
+    if Mechanism == "stabilityhist":
+        released_counts, elapsed_time, all_rmse = Stability_Hist(col_names, Level, budget, max_influence, size, data, histogram, categories, sensitive_counts)
+
+    return(released_counts, elapsed_time, all_rmse)
+
