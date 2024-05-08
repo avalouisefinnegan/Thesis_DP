@@ -7,6 +7,8 @@ dp.enable_features("contrib")
 dp.enable_features("floating-point")
 from StabilityHist import *
 from Laplace import *
+from Randomised_Response import *
+from Unary_Encoding import *
 
 #Load in Data
 #The first CSV file is the sensitive data where each individual corresponds to a row
@@ -21,22 +23,14 @@ def get_variables(path, level, Level):
     categories = agg_data_df[f'{Level}_commute'].unique()
     len(categories) # MUST TAKE FROM DATA WHERE CATEGORIES CAN HAVE COUNT 0 ie.not where each individual is row
     categories = list(categories) #Number of possible categories 
-    return(size, categories, col_names)
+
+    data_df.columns = col_names
+    commutes = data_df[f"{Level}_commute"].tolist()
+
+    return(size, categories, col_names, data_df, commutes)
 
 
-def calculate_rmse(predicted_values, actual_values):    
-    # Calculate the squared differences
-    squared_diffs = np.square(np.array(predicted_values) - np.array(actual_values))
-    
-    # Calculate the mean of squared differences
-    mean_squared_diff = np.mean(squared_diffs)
-    
-    # Take the square root to get RMSE
-    rmse = np.sqrt(mean_squared_diff)
-    
-    return rmse
-
-def plot_histogram(sensitive_counts, released_counts):
+def plot_histogram(sensitive_counts, released_counts, mechanism_name, level, epsilon):
     """Plot a histogram that compares true data against released data"""
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
@@ -54,16 +48,25 @@ def plot_histogram(sensitive_counts, released_counts):
 
     ax.legend()
     plt.xticks([])  
-    plt.title(f'Histogram of Counts after {Mechanism_name} for {Level} Level Commute')
+    plt.title(f'Histogram of Counts after {mechanism_name} for {level} Level Commute')
     plt.xlabel('Commute')
-    plt.ylabel('Count')
+    plt.ylabel(f'Count using epsilon {epsilon}')
     plt.show()
 
-def run_dp(Mechanism, col_names, Level, budget, max_influence, size, data, histogram, categories, sensitive_counts):
+
+
+def run_dp(Mechanism, col_names, Level, budget, max_influence, size, data, histogram, categories, commutes, sensitive_counts):
     if Mechanism == "laplace":
         released_counts, elapsed_time, all_rmse = Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts)
     if Mechanism == "stabilityhist":
         released_counts, elapsed_time, all_rmse = Stability_Hist(col_names, Level, budget, max_influence, size, data, histogram, categories, sensitive_counts)
+    if Mechanism == "randresponse":
+        released_counts, elapsed_time, all_rmse = Randomised_Response(budget, size, categories, commutes, sensitive_counts)
+    if Mechanism == "unaryencoding":
+        if Level == "ED":
+            raise Exception("Unary Encoding is not suitable for the electoral division level due to compuational complexity")
+        else:
+            released_counts, elapsed_time, all_rmse = Unaary_Encoding(budget, size, categories, commutes, sensitive_counts)
 
     return(released_counts, elapsed_time, all_rmse)
 
