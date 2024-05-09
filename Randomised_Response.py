@@ -1,6 +1,8 @@
 import random
 import time
 import numpy as np
+import pandas as pd
+
 
 def calculate_rmse(predicted_values, actual_values):    
     # Calculate the squared differences
@@ -13,6 +15,26 @@ def calculate_rmse(predicted_values, actual_values):
     rmse = np.sqrt(mean_squared_diff)
     
     return rmse
+
+
+def select_index(random_num, prob_q, data_universe_size, individual_index):
+    cumulative_probs = [i * prob_q for i in range(data_universe_size-1)]
+    cumulative_sum = sum(cumulative_probs)
+    # Normalize probabilities
+    normalized_probs = [cum_prob / cumulative_sum for cum_prob in cumulative_probs]
+    # Find the index where p falls in the CDF
+    cdf = 0
+    for index, prob in enumerate(normalized_probs):
+        cdf += prob
+        if random_num < cdf:
+            #Don't want the output index to equal the true index of the individual 
+            index = index + 1 if index >= individual_index else index
+            return index
+        
+
+def select_index_alternative(random_num, prob_q, data_universe_size, individual_index):
+    return()
+
 
 
 import random
@@ -31,25 +53,20 @@ def Randomised_Response(budget, size, categories, commutes, sensitive_counts):
         prob_q = 1 / (np.exp(budget[epsilon][0]) + data_universe_size - 1)
         
         # Generate the randomized responses
-        randomised_responses = []
+        released_counts = [0] * len(categories)
         for individual in range(size):
             true_response = commutes[individual]
+            individual_index = categories.index(true_response)
             # Respond truthfully with probability p
-            if random.random() < prob_p:
-                true_value = true_response
-                randomised_responses.append(true_response)
+            random_num = random.random()
+            if random_num < prob_p:
+                index = individual_index
             else:
-                #Else Respond randomly with probability q
-                false_value = random.randint(0, len(categories)-1)
-                false_value = categories[false_value]
-                randomised_responses.append(false_value)
-
-        rr_response= pd.Series(randomised_responses)
-        rr_counts = rr_response.value_counts()
-        rr_df = pd.DataFrame({'Value': rr_counts.index, 'Count': rr_counts.values})
-        #Order it so that it is the same as categories
-        rr_df = randomised_reponse_df.set_index('Value').reindex(categories).fillna(0).reset_index()
-        released_counts = rr_df["Count"].tolist()
+                #Else Respond with one of the other values with probability  (1-p). Each value is reponded with prob q
+                #prob q respond with answer 1
+                #prob 2q respond with answer 2 ... prob (|X|-1)q repond with answer |X|-1  
+                index = select_index(random_num, prob_q, data_universe_size, individual_index)
+            released_counts[index] += 1
         end_time = time.time()
 
         elapsed_time = end_time - start_time
@@ -63,4 +80,4 @@ def Randomised_Response(budget, size, categories, commutes, sensitive_counts):
         all_rmse.append(rmse)
 
 
-    return(randomised_responses, all_released_counts, all_rmse)
+    return(all_released_counts, all_elapsed_time, all_rmse)
