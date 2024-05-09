@@ -32,9 +32,10 @@ def select_index(random_num, prob_q, data_universe_size, individual_index):
             return index
         
 
-def select_index_alternative(random_num, prob_p, prob_q, data_universe_size, individual_index):
-    
-    return()
+def select_index_alternative(random_num, prob_p, prob_q, individual_index):
+    index = int((random_num - prob_p) // prob_q)
+    index = index + 1 if index >= individual_index else index
+    return index
 
 
 
@@ -66,7 +67,8 @@ def Randomised_Response(budget, size, categories, commutes, sensitive_counts):
                 #Else Respond with one of the other values with probability  (1-p). Each value is reponded with prob q
                 #prob q respond with answer 1
                 #prob 2q respond with answer 2 ... prob (|X|-1)q repond with answer |X|-1  
-                index = select_index(random_num, prob_q, data_universe_size, individual_index)
+                #index = select_index(random_num, prob_q, data_universe_size, individual_index)
+                index = select_index_alternative(random_num, prob_p, prob_q, individual_index)
             released_counts[index] += 1
         end_time = time.time()
 
