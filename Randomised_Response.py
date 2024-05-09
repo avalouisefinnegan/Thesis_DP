@@ -32,7 +32,8 @@ def select_index(random_num, prob_q, data_universe_size, individual_index):
             return index
         
 
-def select_index_alternative(random_num, prob_q, data_universe_size, individual_index):
+def select_index_alternative(random_num, prob_p, prob_q, data_universe_size, individual_index):
+    
     return()
 
 
