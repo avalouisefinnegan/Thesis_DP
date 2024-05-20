@@ -55,18 +55,30 @@ def plot_histogram(sensitive_counts, released_counts, mechanism_name, level, eps
 
 
 
-def run_dp(Mechanism, col_names, Level, budget, max_influence, size, data, histogram, categories, commutes, sensitive_counts):
-    if Mechanism == "laplace":
-        released_counts, elapsed_time, all_rmse = Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts)
-    if Mechanism == "stabilityhist":
-        released_counts, elapsed_time, all_rmse = Stability_Hist(col_names, Level, budget, max_influence, size, data, histogram, categories, sensitive_counts)
+def run_client(Mechanism, Level, budget, size, categories, commutes, sensitive_counts):
     if Mechanism == "randresponse":
-        released_counts, elapsed_time, all_rmse = Randomised_Response(budget, size, categories, commutes, sensitive_counts)
+        released_counts_client, elapsed_time_client = Randomised_Response_Client(budget, size, categories, commutes, sensitive_counts)
     if Mechanism == "unaryencoding":
         if Level == "ED":
             raise Exception("Unary Encoding is not suitable for the electoral division level due to compuational complexity")
         else:
-            released_counts, elapsed_time, all_rmse = Unaary_Encoding(budget, size, categories, commutes, sensitive_counts)
+            released_counts_client, elapsed_time_client = Unary_Encoding_Client(budget, size, categories, commutes, sensitive_counts)
+    return(released_counts_client, elapsed_time_client)
 
+def run_server(Mechanism, Level, released_counts, sensitive_counts, size, budget, categories, g):
+    if Mechanism == "randresponse":
+        released_counts, elapsed_time, all_rmse = Randomised_Response_Server(released_counts, sensitive_counts, size, budget, categories)
+    if Mechanism == "unaryencoding":
+        if Level == "ED":
+            raise Exception("Unary Encoding is not suitable for the electoral division level due to compuational complexity")
+        else:
+            released_counts, elapsed_time, all_rmse = Unary_Encoding_Server(released_counts, sensitive_counts, size, budget)
     return(released_counts, elapsed_time, all_rmse)
+
+
+def run_central(Mechanism, col_names, Level, budget, max_influence, size, data, histogram, categories, sensitive_counts):
+    if Mechanism == "laplace":
+        released_counts, elapsed_time, all_rmse = Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts)
+    if Mechanism == "stabilityhist":
+        released_counts, elapsed_time, all_rmse = Stability_Hist(col_names, Level, budget, max_influence, size, data, histogram, categories, sensitive_counts)
 

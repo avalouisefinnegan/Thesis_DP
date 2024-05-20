@@ -16,23 +16,8 @@ def calculate_rmse(predicted_values, actual_values):
     
     return rmse
 
-
-def select_index(random_num, prob_q, data_universe_size, individual_index):
-    cumulative_probs = [i * prob_q for i in range(data_universe_size-1)]
-    cumulative_sum = sum(cumulative_probs)
-    # Normalize probabilities
-    normalized_probs = [cum_prob / cumulative_sum for cum_prob in cumulative_probs]
-    # Find the index where p falls in the CDF
-    cdf = 0
-    for index, prob in enumerate(normalized_probs):
-        cdf += prob
-        if random_num < cdf:
-            #Don't want the output index to equal the true index of the individual 
-            index = index + 1 if index >= individual_index else index
-            return index
         
-
-def select_index_alternative(random_num, prob_p, prob_q, individual_index):
+def select_index(random_num, prob_p, prob_q, individual_index):
     index = int((random_num - prob_p) // prob_q)
     index = index + 1 if index >= individual_index else index
     return index
@@ -40,10 +25,86 @@ def select_index_alternative(random_num, prob_p, prob_q, individual_index):
 
 
 import random
-def Randomised_Response(budget, size, categories, commutes, sensitive_counts):
+def Randomised_Response_Client(budget, size, categories, commutes, sensitive_counts):
     all_released_counts =[]
     all_elapsed_time = []
-    all_rmse  =[]
+    data_universe_size = len(categories)
+
+    for epsilon in range(len(budget)):
+
+        print("Starting Randomised Response with an epsilon value of ", epsilon)
+        start_time = time.time()
+
+        prob_p = np.exp(budget[epsilon][0]) / (np.exp(budget[epsilon][0]) + data_universe_size - 1)
+        prob_q = 1 / (np.exp(budget[epsilon][0]) + data_universe_size - 1)
+        
+        # Generate the randomized responses
+        randomised_responses = []
+        for individual in range(size):
+            true_response = commutes[individual]
+            individual_index = categories.index(true_response)
+            # Respond truthfully with probability p
+            random_num = random.random()
+            if random_num < prob_p:
+                randomised_responses.append(true_response)
+            else:
+                #Else Respond with one of the other values with probability  (1-p). Each value is reponded with prob q
+                #prob q respond with answer 1
+                #prob 2q respond with answer 2 ... prob (|X|-1)q repond with answer |X|-1  
+                #index = select_index(random_num, prob_q, data_universe_size, individual_index)
+                index = select_index(random_num, prob_p, prob_q, individual_index)
+                false_value = categories[index]
+            randomised_responses.append(false_value)
+
+        rr_response= pd.Series(randomised_responses)
+        rr_counts = rr_response.value_counts()
+        rr_df = pd.DataFrame({'Value': rr_counts.index, 'Count': rr_counts.values})
+        #Order it so that it is the same as categories
+        rr_df = rr_df.set_index('Value').reindex(categories).fillna(0).reset_index()
+        released_counts = rr_df["Count"].tolist()
+
+
+        all_released_counts.append(released_counts)
+        end_time = time.time()
+
+        elapsed_time = end_time - start_time
+        all_elapsed_time.append(elapsed_time)
+
+        print("Finished Randomised Response with an epsilon value of ", epsilon)
+
+    return(all_released_counts, all_elapsed_time)
+
+
+def Randomised_Response_Server(released_counts, sensitive_counts,  size, budget, categories):
+    all_released_counts = []
+    all_elapsed_time = []
+    all_rmse = []
+    data_universe_size = len(categories)
+
+    for epsilon in range(len(budget)):
+        prob_p = np.exp(budget[epsilon][0]) / (np.exp(budget[epsilon][0]) + data_universe_size - 1)
+        prob_q = 1 / (np.exp(budget[epsilon][0]) + data_universe_size - 1)
+    
+        start_time = time.time()
+
+        released_counts_server = (released_counts[epsilon] - (prob_q*size))/(prob_p - prob_q)
+
+        [0 if x < 0 else x for x in released_counts_server]
+
+        rmse = calculate_rmse(released_counts_server, sensitive_counts[:-1])
+        all_rmse.append(rmse)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        all_elapsed_time.append(elapsed_time)
+        all_released_counts.append(released_counts_server)
+
+    return(all_released_counts, all_elapsed_time, all_rmse)
+
+
+
+def Randomised_Response_alternative(budget, size, categories, commutes, sensitive_counts):
+    all_released_counts =[]
+    all_elapsed_time = []
     data_universe_size = len(categories)
 
     for epsilon in range(len(budget)):
@@ -68,7 +129,7 @@ def Randomised_Response(budget, size, categories, commutes, sensitive_counts):
                 #prob q respond with answer 1
                 #prob 2q respond with answer 2 ... prob (|X|-1)q repond with answer |X|-1  
                 #index = select_index(random_num, prob_q, data_universe_size, individual_index)
-                index = select_index_alternative(random_num, prob_p, prob_q, individual_index)
+                index = select_index(random_num, prob_p, prob_q, individual_index)
             released_counts[index] += 1
         end_time = time.time()
 
@@ -79,8 +140,5 @@ def Randomised_Response(budget, size, categories, commutes, sensitive_counts):
 
         print("Finished Randomised Response with an epsilon value of ", epsilon)
 
-        rmse = calculate_rmse(released_counts, sensitive_counts[:-1])
-        all_rmse.append(rmse)
 
-
-    return(all_released_counts, all_elapsed_time, all_rmse)
+    return(all_released_counts, all_elapsed_time)
