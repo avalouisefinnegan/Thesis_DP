@@ -32,7 +32,7 @@ def Randomised_Response_Client(budget, size, categories, commutes, sensitive_cou
 
     for epsilon in range(len(budget)):
 
-        print("Starting Randomised Response with an epsilon value of ", epsilon)
+        print("Starting Randomised Response with an epsilon value of ", budget[epsilon][0])
         start_time = time.time()
 
         prob_p = np.exp(budget[epsilon][0]) / (np.exp(budget[epsilon][0]) + data_universe_size - 1)
@@ -70,7 +70,7 @@ def Randomised_Response_Client(budget, size, categories, commutes, sensitive_cou
         elapsed_time = end_time - start_time
         all_elapsed_time.append(elapsed_time)
 
-        print("Finished Randomised Response with an epsilon value of ", epsilon)
+        print("Finished Randomised Response with an epsilon value of ", budget[epsilon][0])
 
     return(all_released_counts, all_elapsed_time)
 
@@ -89,16 +89,17 @@ def Randomised_Response_Server(released_counts, sensitive_counts,  size, budget,
 
         released_counts_server = (released_counts[epsilon] - (prob_q*size))/(prob_p - prob_q)
 
-        [0 if x < 0 else x for x in released_counts_server]
+        #[0 if x < 0 else x for x in released_counts_server]
 
-        rmse = calculate_rmse(released_counts_server, sensitive_counts[:-1])
-        all_rmse.append(rmse)
+        #rmse = calculate_rmse(released_counts_server, sensitive_counts[:-1])
+        #all_rmse.append(rmse)
         end_time = time.time()
         elapsed_time = end_time - start_time
         all_elapsed_time.append(elapsed_time)
         all_released_counts.append(released_counts_server)
 
-    return(all_released_counts, all_elapsed_time, all_rmse)
+    #return(all_released_counts, all_elapsed_time, all_rmse)
+    return(all_released_counts, all_elapsed_time)
 
 
 

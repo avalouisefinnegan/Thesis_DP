@@ -153,11 +153,12 @@ def Unary_Encoding_Server(released_counts, sensitive_counts,  size, budget):
 
         released_counts_server = (released_counts[epsilon] - (prob_q*size))/(prob_p - prob_q)
 
-        rmse = calculate_rmse(released_counts_server, sensitive_counts[:-1])
-        all_rmse.append(rmse)
+        #rmse = calculate_rmse(released_counts_server, sensitive_counts[:-1])
+        #all_rmse.append(rmse)
         end_time = time.time()
         elapsed_time = end_time - start_time
         all_elapsed_time.append(elapsed_time)
         all_released_counts.append(released_counts_server)
 
-    return(all_released_counts, all_elapsed_time, all_rmse)
+    #return(all_released_counts, all_elapsed_time, all_rmse)
+    return(all_released_counts, all_elapsed_time)
