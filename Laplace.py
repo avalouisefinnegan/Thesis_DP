@@ -1,11 +1,21 @@
 import time
-import matplotlib.pyplot as plt
 import numpy as np
 import opendp.prelude as dp
 dp.enable_features("contrib")
 dp.enable_features("floating-point")
-from utilities import *
 
+
+def calculate_rmse(predicted_values, actual_values):    
+    # Calculate the squared differences
+    squared_diffs = np.square(np.array(predicted_values) - np.array(actual_values))
+    
+    # Calculate the mean of squared differences
+    mean_squared_diff = np.mean(squared_diffs)
+    
+    # Take the square root to get RMSE
+    rmse = np.sqrt(mean_squared_diff)
+    
+    return rmse
 
 def Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts):
     # empty lists
@@ -40,11 +50,9 @@ def Laplace_Mechamism(budget, max_influence, data, histogram, sensitive_counts):
         released_counts = released_counts[:-1]
         all_released_counts.append(released_counts)
 
-        print("Finished Laplace")
-        print("Calculating RMSE")
-
-        rmse = calculate_rmse(released_counts, sensitive_counts[:-1])
+        rmse = calculate_rmse(released_counts, sensitive_counts)
         all_rmse.append(rmse)
     
+    print("Finished Laplace")
 
     return(all_released_counts, all_elapsed_time, all_rmse)

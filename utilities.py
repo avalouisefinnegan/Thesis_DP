@@ -14,8 +14,8 @@ from Unary_Encoding import *
 #The first CSV file is the sensitive data where each individual corresponds to a row
 #The second CSV file is the aggregate file where all possible elements are present, in this mobility dataset, majority of the elements have a count of 0. 
 def get_variables(path, level, Level):
-    agg_data_df = pd.read_csv(path + f"agg_commute_{level}_level_all.csv")
-    data_df = pd.read_csv(path + f"commute_{level}_level_all.csv")
+    agg_data_df = pd.read_csv(path + f"Dagg_commute_{level}_level_all.csv")
+    data_df = pd.read_csv(path + f"Dcommute_{level}_level_all.csv")
 
     col_names = [f"{Level}_commute",f"{Level}_Origin",f"{Level}_Destination"]
     size = len(data_df) #Number of individuals in dataset
@@ -30,7 +30,7 @@ def get_variables(path, level, Level):
     return(size, categories, col_names, data_df, commutes)
 
 
-def plot_histogram(sensitive_counts, released_counts, mechanism_name, level, epsilon):
+def plot_histogram(sensitive_counts, released_counts, mechanism_name, level, epsilon, mechanism):
     """Plot a histogram that compares true data against released data"""
     import matplotlib.pyplot as plt
     import matplotlib.ticker as ticker
@@ -43,8 +43,24 @@ def plot_histogram(sensitive_counts, released_counts, mechanism_name, level, eps
     ax.xaxis.set_major_locator(ticker.MultipleLocator(tick_spacing))
     width = .4
 
-    ax.bar(list([x+width for x in range(0, len(sensitive_counts))]), sensitive_counts, width=width, label='True Value')
-    ax.bar(list([x+2*width for x in range(0, len(released_counts))]), released_counts, width=width, label='DP Value')
+    ax.bar(list([x+width for x in range(0, len(sensitive_counts))]), sensitive_counts, width=width, label='True Value', color='xkcd:dark brown')
+
+    if mechanism == 'laplace':
+        color = 'xkcd:light red'
+    elif mechanism == 'stabilityhist':
+        color = 'xkcd:kelly green'
+    elif mechanism == 'randresponse':
+        color = 'xkcd:tangerine'
+    elif mechanism == 'unaryencoding':
+        color = 'xkcd:azure'
+    elif mechanism == 'olh':
+        color = 'xkcd:sky blue'
+    elif mechanism == 'hadamard':
+        color = 'xkcd:pastel purple'
+    else:       
+        color = 'green'
+
+    ax.bar(list([x+2*width for x in range(0, len(released_counts))]), released_counts, width=width, label='DP Value', color = color)
 
     ax.legend()
     plt.xticks([])  
